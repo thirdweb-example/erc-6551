@@ -1,0 +1,4 @@
+@thirdweb-dev/=lib/contracts/
+forge-std/=lib/forge-std/
+ds-test/=lib/forge-std/lib/ds-test/src/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
