@@ -5,7 +5,7 @@ pragma solidity ^0.8.12;
 import "@thirdweb-dev/contracts/smart-wallet/utils/BaseAccountFactory.sol";
 
 // Smart wallet implementation
-import {TokenBoundAccount} from "./TokenBoundAccount.sol";
+import "./TokenBoundAccount.sol";
 
 contract TokenBoundAccountFactory is BaseAccountFactory {
     /*///////////////////////////////////////////////////////////////

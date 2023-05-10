@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 // Test utils
 import "@thirdweb-dev/src/test/utils/BaseTest.sol";
 import "@thirdweb-dev/src/test/mocks/MockERC721.sol";
-import "@thirdweb-dev/contracts/smart-wallet/non-upgradeable/Account.sol";
 
 // Account Abstraction setup for smart wallets.
 import {EntryPoint, IEntryPoint} from "@thirdweb-dev/contracts/smart-wallet/utils/Entrypoint.sol";
