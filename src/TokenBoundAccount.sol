@@ -19,7 +19,7 @@ contract TokenBoundAccount is Account {
     function isValidSigner(
         address _signer
     ) public view override returns (bool) {
-        return (isOwner(_signer));
+        return (isOwner(_signer) || hasRole(SIGNER_ROLE, _signer));
     }
 
     function isOwner(address _signer) public view returns (bool) {
@@ -33,7 +33,6 @@ contract TokenBoundAccount is Account {
         address _admin,
         bytes calldata _data
     ) public override initializer {
-        super.initialize(_admin, _data);
         (chainId, tokenContract, tokenId) = abi.decode(
             _data,
             (uint256, address, uint256)

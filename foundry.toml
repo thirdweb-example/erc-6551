@@ -2,6 +2,7 @@
 src = 'src'
 out = 'out'
 libs = ['lib']
+ffi = true
 remappings = [
   '@thirdweb-dev/=lib/contracts/',
   '@ds-test=lib/forge-std/lib/ds-test/src/',

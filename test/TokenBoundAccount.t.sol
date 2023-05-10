@@ -2,14 +2,17 @@
 pragma solidity ^0.8.0;
 
 // Test utils
-import "@thirdweb-dev/src/test/utils/BaseTest.sol";
+import "@std/Test.sol";
 import "@thirdweb-dev/src/test/mocks/MockERC721.sol";
+import "@thirdweb-dev/src/test/mocks/MockERC1155.sol";
+import "@thirdweb-dev/contracts/openzeppelin-presets/utils/cryptography/ECDSA.sol";
 
 // Account Abstraction setup for smart wallets.
 import {EntryPoint, IEntryPoint} from "@thirdweb-dev/contracts/smart-wallet/utils/Entrypoint.sol";
 import {UserOperation} from "@thirdweb-dev/contracts/smart-wallet/utils/UserOperation.sol";
 
-import "../src/TokenBoundAccountFactory.sol";
+// Target
+import {TokenBoundAccountFactory, TokenBoundAccount} from "../src/TokenBoundAccountFactory.sol";
 
 /// @dev This is a dummy contract to test contract interactions with Account.
 contract Number {
@@ -29,9 +32,11 @@ contract Number {
 }
 
 contract TokenBoundAccountTest is Test {
+    using ECDSA for bytes32;
+
     // Target contracts
     EntryPoint private entrypoint;
-    TokenBoundAccountFactory private accountFactory;
+    TokenBoundAccountFactory private tokenBoundAccountFactory;
 
     // Mocks
     Number internal numberContract;
@@ -46,12 +51,13 @@ contract TokenBoundAccountTest is Test {
     uint256 private nonSignerPKey = 300;
     address private nonSigner;
 
-    bytes internal data;
-    MockERC721 internal erc721;
-
-    // UserOp terminology: `sender` is the smart wallet. CHANGE!
+    // UserOp terminology: `sender` is the smart wallet.
     address private sender = 0xBB956D56140CA3f3060986586A2631922a4B347E;
     address payable private beneficiary = payable(address(0x45654));
+
+    MockERC721 private mockERC721;
+    MockERC1155 private mockERC1155;
+    bytes data;
 
     event AccountCreated(address indexed account, address indexed accountAdmin);
 
@@ -129,11 +135,13 @@ contract TokenBoundAccountTest is Test {
         return _setupUserOp(_signerPKey, _initCode, callDataForEntrypoint);
     }
 
-    function setUp() public override {
-        super.setUp();
+    function setUp() public {
+        mockERC721 = new MockERC721();
+        mockERC1155 = new MockERC1155();
 
         // Setup signers.
         accountAdmin = vm.addr(accountAdminPKey);
+        mockERC721.mint(accountAdmin, 1);
         vm.deal(accountAdmin, 100 ether);
 
         accountSigner = vm.addr(accountSignerPKey);
@@ -141,27 +149,14 @@ contract TokenBoundAccountTest is Test {
 
         // Setup contracts
         entrypoint = new EntryPoint();
-
-        // mint token
-        erc721 = new MockERC721();
-        erc721.mint(accountAdmin, 1);
-
-        // deploy token bound account factory
-        accountFactory = TokenBoundAccountFactory(
-            address(
-                new TokenBoundAccountFactory(
-                    IEntryPoint(payable(address(entrypoint))),
-                    block.chainid,
-                    address(erc721),
-                    0
-                )
-            )
+        // deploy account factory
+        tokenBoundAccountFactory = new TokenBoundAccountFactory(
+            IEntryPoint(payable(address(entrypoint)))
         );
-
         // deploy dummy contract
         numberContract = new Number();
 
-        data = abi.encode(block.chainid, address(erc721), 0);
+        data = abi.encode(block.chainid, address(mockERC721), 0);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -172,7 +167,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_createAccount_viaFactory() public {
         vm.expectEmit(true, true, false, true);
         emit AccountCreated(sender, accountAdmin);
-        accountFactory.createAccount(accountAdmin, data);
+        tokenBoundAccountFactory.createAccount(accountAdmin, data);
     }
 
     /// @dev Create an account via Entrypoint.
@@ -183,7 +178,7 @@ contract TokenBoundAccountTest is Test {
             data
         );
         bytes memory initCode = abi.encodePacked(
-            abi.encodePacked(address(accountFactory)),
+            abi.encodePacked(address(tokenBoundAccountFactory)),
             initCallData
         );
 
@@ -211,7 +206,7 @@ contract TokenBoundAccountTest is Test {
             data
         );
         bytes memory initCode = abi.encodePacked(
-            abi.encodePacked(address(accountFactory)),
+            abi.encodePacked(address(tokenBoundAccountFactory)),
             initCallData
         );
 
@@ -230,12 +225,12 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeTransaction() public {
         _setup_executeTransaction();
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
         assertEq(numberContract.num(), 0);
 
         vm.prank(accountAdmin);
-        Account(payable(account)).execute(
+        TokenBoundAccount(payable(account)).execute(
             address(numberContract),
             0,
             abi.encodeWithSignature("setNum(uint256)", 42)
@@ -248,7 +243,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeBatchTransaction() public {
         _setup_executeTransaction();
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
         assertEq(numberContract.num(), 0);
 
@@ -264,7 +259,11 @@ contract TokenBoundAccountTest is Test {
         }
 
         vm.prank(accountAdmin);
-        Account(payable(account)).executeBatch(targets, values, callData);
+        TokenBoundAccount(payable(account)).executeBatch(
+            targets,
+            values,
+            callData
+        );
 
         assertEq(numberContract.num(), count);
     }
@@ -322,10 +321,10 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeTransaction_viaAccountSigner() public {
         _setup_executeTransaction();
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
         vm.prank(accountAdmin);
-        Account(payable(account)).grantRole(
+        TokenBoundAccount(payable(account)).grantRole(
             keccak256("SIGNER_ROLE"),
             accountSigner
         );
@@ -367,10 +366,10 @@ contract TokenBoundAccountTest is Test {
     function test_revert_executeTransaction_nonSigner_viaDirectCall() public {
         _setup_executeTransaction();
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
         vm.prank(accountAdmin);
-        Account(payable(account)).grantRole(
+        TokenBoundAccount(payable(account)).grantRole(
             keccak256("SIGNER_ROLE"),
             accountSigner
         );
@@ -379,7 +378,7 @@ contract TokenBoundAccountTest is Test {
 
         vm.prank(accountSigner);
         vm.expectRevert("Account: not admin or EntryPoint.");
-        Account(payable(account)).execute(
+        TokenBoundAccount(payable(account)).execute(
             address(numberContract),
             0,
             abi.encodeWithSignature("setNum(uint256)", 42)
@@ -394,7 +393,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_accountReceivesNativeTokens() public {
         _setup_executeTransaction();
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
         assertEq(address(account).balance, 0);
 
@@ -410,7 +409,7 @@ contract TokenBoundAccountTest is Test {
 
         uint256 value = 1000;
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
         vm.prank(accountAdmin);
         payable(account).call{value: value}("");
         assertEq(address(account).balance, value);
@@ -435,20 +434,20 @@ contract TokenBoundAccountTest is Test {
     function test_state_addAndWithdrawDeposit() public {
         _setup_executeTransaction();
 
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
-        assertEq(Account(payable(account)).getDeposit(), 0);
-
-        vm.prank(accountAdmin);
-        Account(payable(account)).addDeposit{value: 1000}();
-        assertEq(Account(payable(account)).getDeposit(), 1000);
+        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
 
         vm.prank(accountAdmin);
-        Account(payable(account)).withdrawDepositTo(
+        TokenBoundAccount(payable(account)).addDeposit{value: 1000}();
+        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 1000);
+
+        vm.prank(accountAdmin);
+        TokenBoundAccount(payable(account)).withdrawDepositTo(
             payable(accountSigner),
             500
         );
-        assertEq(Account(payable(account)).getDeposit(), 500);
+        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 500);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -458,33 +457,24 @@ contract TokenBoundAccountTest is Test {
     /// @dev Send an ERC-721 NFT to an account.
     function test_state_receiveERC721NFT() public {
         _setup_executeTransaction();
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
-        assertEq(erc721.balanceOf(account), 0);
+        assertEq(mockERC721.balanceOf(account), 0);
 
-        erc721.mint(account, 1);
+        mockERC721.mint(account, 1);
 
-        assertEq(erc721.balanceOf(account), 1);
+        assertEq(mockERC721.balanceOf(account), 1);
     }
 
     /// @dev Send an ERC-1155 NFT to an account.
     function test_state_receiveERC1155NFT() public {
         _setup_executeTransaction();
-        address account = accountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
-        assertEq(erc1155.balanceOf(account, 0), 0);
+        assertEq(mockERC1155.balanceOf(account, 0), 0);
 
-        erc1155.mint(account, 0, 1);
+        mockERC1155.mint(account, 0, 1);
 
-        assertEq(erc1155.balanceOf(account, 0), 1);
-    }
-
-    // isOwner
-    function testIsOwner() public {
-        //bytes data = abi.encode(block.chainid, address(erc721), 1);
-        // vm.expectEmit(true, true, false, true);
-        // emit AccountCreated(sender, accountAdmin);
-        // TokenBoundAccount account = accountFactory.createAccount(accountAdmin, data);
-        // assertTrue(TokenBoundAccount(address(account)).isOwner(accountAdmin));
+        assertEq(mockERC1155.balanceOf(account, 0), 1);
     }
 }
