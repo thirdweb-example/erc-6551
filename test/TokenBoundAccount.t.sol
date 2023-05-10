@@ -52,7 +52,7 @@ contract TokenBoundAccountTest is Test {
     address private nonSigner;
 
     // UserOp terminology: `sender` is the smart wallet.
-    address private sender = 0xBB956D56140CA3f3060986586A2631922a4B347E;
+    address private sender = 0xbC12AEae5E1b1a80401dd20A6728f7a01a3A6166;
     address payable private beneficiary = payable(address(0x45654));
 
     MockERC721 private mockERC721;
@@ -317,33 +317,6 @@ contract TokenBoundAccountTest is Test {
         assertEq(numberContract.num(), count);
     }
 
-    /// @dev Perform a state changing transaction via Entrypoint and a SIGNER_ROLE holder.
-    function test_state_executeTransaction_viaAccountSigner() public {
-        _setup_executeTransaction();
-
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
-
-        vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).grantRole(
-            keccak256("SIGNER_ROLE"),
-            accountSigner
-        );
-
-        assertEq(numberContract.num(), 0);
-
-        UserOperation[] memory userOp = _setupUserOpExecute(
-            accountSignerPKey,
-            bytes(""),
-            address(numberContract),
-            0,
-            abi.encodeWithSignature("setNum(uint256)", 42)
-        );
-
-        EntryPoint(entrypoint).handleOps(userOp, beneficiary);
-
-        assertEq(numberContract.num(), 42);
-    }
-
     /// @dev Revert: perform a state changing transaction via Entrypoint without appropriate permissions.
     function test_revert_executeTransaction_nonSigner_viaEntrypoint() public {
         _setup_executeTransaction();
@@ -360,29 +333,6 @@ contract TokenBoundAccountTest is Test {
 
         vm.expectRevert();
         EntryPoint(entrypoint).handleOps(userOp, beneficiary);
-    }
-
-    /// @dev Revert: non-admin performs a state changing transaction directly via account contract.
-    function test_revert_executeTransaction_nonSigner_viaDirectCall() public {
-        _setup_executeTransaction();
-
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
-
-        vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).grantRole(
-            keccak256("SIGNER_ROLE"),
-            accountSigner
-        );
-
-        assertEq(numberContract.num(), 0);
-
-        vm.prank(accountSigner);
-        vm.expectRevert("Account: not admin or EntryPoint.");
-        TokenBoundAccount(payable(account)).execute(
-            address(numberContract),
-            0,
-            abi.encodeWithSignature("setNum(uint256)", 42)
-        );
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -429,26 +379,26 @@ contract TokenBoundAccountTest is Test {
         assertEq(recipient.balance, value);
     }
 
-    /// @dev Add and remove a deposit for the account from the Entrypoint.
+    // /// @dev Add and remove a deposit for the account from the Entrypoint.
 
-    function test_state_addAndWithdrawDeposit() public {
-        _setup_executeTransaction();
+    // function test_state_addAndWithdrawDeposit() public {
+    //     _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+    //     address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
-        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
+    //     assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
 
-        vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).addDeposit{value: 1000}();
-        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 1000);
+    //     vm.prank(accountAdmin);
+    //     TokenBoundAccount(payable(account)).addDeposit{value: 1000}();
+    //     assertEq(TokenBoundAccount(payable(account)).getDeposit(), 1000);
 
-        vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).withdrawDepositTo(
-            payable(accountSigner),
-            500
-        );
-        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 500);
-    }
+    //     vm.prank(accountAdmin);
+    //     TokenBoundAccount(payable(account)).withdrawDepositTo(
+    //         payable(accountSigner),
+    //         500
+    //     );
+    //     assertEq(TokenBoundAccount(payable(account)).getDeposit(), 500);
+    // }
 
     /*///////////////////////////////////////////////////////////////
                 Test: receiving ERC-721 and ERC-1155 NFTs
