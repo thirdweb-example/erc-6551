@@ -77,12 +77,12 @@ contract TokenBoundAccount is Account {
         _;
     }
 
-    /// @notice Withdraw funds for this account from Entrypoint.
-    function withdrawDepositTo(
-        address payable withdrawAddress,
-        uint256 amount
-    ) public virtual override {
-        require(owner() == msg.sender, "Account: not NFT owner");
-        entryPoint().withdrawTo(withdrawAddress, amount);
-    }
+    // /// @notice Withdraw funds for this account from Entrypoint.
+    // function withdrawDepositTo(
+    //     address payable withdrawAddress,
+    //     uint256 amount
+    // ) public virtual override {
+    //     require(owner() == msg.sender, "Account: not NFT owner");
+    //     entryPoint().withdrawTo(withdrawAddress, amount);
+    // }
 }

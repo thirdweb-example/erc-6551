@@ -52,7 +52,7 @@ contract TokenBoundAccountTest is Test {
     address private nonSigner;
 
     // UserOp terminology: `sender` is the smart wallet.
-    address private sender = 0xbC12AEae5E1b1a80401dd20A6728f7a01a3A6166;
+    address private sender = 0x5B0091f49210e7B2A57B03dfE1AB9D08289d9294;
     address payable private beneficiary = payable(address(0x45654));
 
     MockERC721 private mockERC721;
