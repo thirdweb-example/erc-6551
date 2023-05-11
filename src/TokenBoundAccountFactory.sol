@@ -29,7 +29,7 @@ contract TokenBoundAccountFactory is BaseAccountFactory {
 
     /// @notice
     function _generateSalt(
-        address _admin,
+        address,
         bytes calldata _data
     ) internal view virtual override returns (bytes32) {
         return keccak256(abi.encode(_data));
