@@ -379,26 +379,26 @@ contract TokenBoundAccountTest is Test {
         assertEq(recipient.balance, value);
     }
 
-    // /// @dev Add and remove a deposit for the account from the Entrypoint.
+    /// @dev Add and remove a deposit for the account from the Entrypoint.
 
-    // function test_state_addAndWithdrawDeposit() public {
-    //     _setup_executeTransaction();
+    function test_state_addAndWithdrawDeposit() public {
+        _setup_executeTransaction();
 
-    //     address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
 
-    //     assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
+        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
 
-    //     vm.prank(accountAdmin);
-    //     TokenBoundAccount(payable(account)).addDeposit{value: 1000}();
-    //     assertEq(TokenBoundAccount(payable(account)).getDeposit(), 1000);
+        vm.prank(accountAdmin);
+        TokenBoundAccount(payable(account)).addDeposit{value: 1000}();
+        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 1000);
 
-    //     vm.prank(accountAdmin);
-    //     TokenBoundAccount(payable(account)).withdrawDepositTo(
-    //         payable(accountSigner),
-    //         500
-    //     );
-    //     assertEq(TokenBoundAccount(payable(account)).getDeposit(), 500);
-    // }
+        vm.prank(accountAdmin);
+        TokenBoundAccount(payable(account)).withdrawDepositTo(
+            payable(accountSigner),
+            500
+        );
+        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 500);
+    }
 
     /*///////////////////////////////////////////////////////////////
                 Test: receiving ERC-721 and ERC-1155 NFTs

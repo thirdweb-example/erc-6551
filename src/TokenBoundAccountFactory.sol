@@ -8,6 +8,9 @@ import "@thirdweb-dev/contracts/smart-wallet/utils/BaseAccountFactory.sol";
 import {TokenBoundAccount} from "./TokenBoundAccount.sol";
 
 contract TokenBoundAccountFactory is BaseAccountFactory {
+    /// @notice Emitted when a new Token Bound Account is created.
+    event TokenBoundAccountCreated(address indexed account, bytes indexed data);
+
     /*///////////////////////////////////////////////////////////////
                             Constructor
     //////////////////////////////////////////////////////////////*/
@@ -19,6 +22,18 @@ contract TokenBoundAccountFactory is BaseAccountFactory {
             address(new TokenBoundAccount(_entrypoint, address(this)))
         )
     {}
+
+    /*///////////////////////////////////////////////////////////////
+                            Internal functions
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice
+    function _generateSalt(
+        address _admin,
+        bytes calldata _data
+    ) internal virtual override returns (bytes32) {
+        return keccak256(abi.encode(_data));
+    }
 
     /// @notice Deploys a new Account for admin.
     function _initializeAccount(

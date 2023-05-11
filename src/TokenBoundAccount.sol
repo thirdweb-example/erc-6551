@@ -9,6 +9,8 @@ contract TokenBoundAccount is Account {
     address tokenContract;
     uint256 tokenId;
 
+    event TokenBoundAccountCreated(address indexed account, bytes indexed data);
+
     constructor(
         IEntryPoint _entrypoint,
         address _factory
@@ -30,9 +32,11 @@ contract TokenBoundAccount is Account {
     }
 
     function initialize(
-        address /*_admin*/,
+        address _admin,
         bytes calldata _data
     ) public override initializer {
+        require(owner() == _admin, "Account: not token owner.");
+
         (chainId, tokenContract, tokenId) = abi.decode(
             _data,
             (uint256, address, uint256)
@@ -73,12 +77,12 @@ contract TokenBoundAccount is Account {
         _;
     }
 
-    // /// @notice Withdraw funds for this account from Entrypoint.
-    // function withdrawDepositTo(
-    //     address payable withdrawAddress,
-    //     uint256 amount
-    // ) public virtual override {
-    //     require(owner() == msg.sender, "Account: not NFT owner");
-    //     entryPoint().withdrawTo(withdrawAddress, amount);
-    // }
+    /// @notice Withdraw funds for this account from Entrypoint.
+    function withdrawDepositTo(
+        address payable withdrawAddress,
+        uint256 amount
+    ) public virtual override {
+        require(owner() == msg.sender, "Account: not NFT owner");
+        entryPoint().withdrawTo(withdrawAddress, amount);
+    }
 }
