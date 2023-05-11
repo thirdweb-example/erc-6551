@@ -52,7 +52,7 @@ contract TokenBoundAccountTest is Test {
     address private nonSigner;
 
     // UserOp terminology: `sender` is the smart wallet.
-    address private sender = 0x5B0091f49210e7B2A57B03dfE1AB9D08289d9294;
+    address private sender = 0x44ABAc7E845100201E9c661c4ED5b30A28a20eb2;
     address payable private beneficiary = payable(address(0x45654));
 
     MockERC721 private mockERC721;
@@ -225,7 +225,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeTransaction() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
 
         assertEq(numberContract.num(), 0);
 
@@ -243,7 +243,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeBatchTransaction() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
 
         assertEq(numberContract.num(), 0);
 
@@ -343,7 +343,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_accountReceivesNativeTokens() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
 
         assertEq(address(account).balance, 0);
 
@@ -359,7 +359,7 @@ contract TokenBoundAccountTest is Test {
 
         uint256 value = 1000;
 
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
         vm.prank(accountAdmin);
         payable(account).call{value: value}("");
         assertEq(address(account).balance, value);
@@ -384,7 +384,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_addAndWithdrawDeposit() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
 
         assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
 
@@ -407,7 +407,7 @@ contract TokenBoundAccountTest is Test {
     /// @dev Send an ERC-721 NFT to an account.
     function test_state_receiveERC721NFT() public {
         _setup_executeTransaction();
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
 
         assertEq(mockERC721.balanceOf(account), 0);
 
@@ -419,7 +419,7 @@ contract TokenBoundAccountTest is Test {
     /// @dev Send an ERC-1155 NFT to an account.
     function test_state_receiveERC1155NFT() public {
         _setup_executeTransaction();
-        address account = tokenBoundAccountFactory.getAddress(accountAdmin);
+        address account = tokenBoundAccountFactory.createAccount(accountAdmin, data);
 
         assertEq(mockERC1155.balanceOf(account, 0), 0);
 

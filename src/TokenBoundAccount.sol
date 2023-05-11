@@ -5,9 +5,9 @@ import "@thirdweb-dev/contracts/smart-wallet/non-upgradeable/Account.sol";
 import "@thirdweb-dev/contracts/eip/interface/IERC721.sol";
 
 contract TokenBoundAccount is Account {
-    uint256 chainId;
-    address tokenContract;
-    uint256 tokenId;
+    uint256 public chainId;
+    address public tokenContract;
+    uint256 public tokenId;
 
     event TokenBoundAccountCreated(address indexed account, bytes indexed data);
 
@@ -35,12 +35,11 @@ contract TokenBoundAccount is Account {
         address _admin,
         bytes calldata _data
     ) public override initializer {
-        require(owner() == _admin, "Account: not token owner.");
-
         (chainId, tokenContract, tokenId) = abi.decode(
             _data,
             (uint256, address, uint256)
         );
+        require(owner() == _admin, "Account: not token owner.");
     }
 
     /// @notice Executes a transaction (called directly from an admin, or by entryPoint)
@@ -77,12 +76,12 @@ contract TokenBoundAccount is Account {
         _;
     }
 
-    // /// @notice Withdraw funds for this account from Entrypoint.
-    // function withdrawDepositTo(
-    //     address payable withdrawAddress,
-    //     uint256 amount
-    // ) public virtual override {
-    //     require(owner() == msg.sender, "Account: not NFT owner");
-    //     entryPoint().withdrawTo(withdrawAddress, amount);
-    // }
+    /// @notice Withdraw funds for this account from Entrypoint.
+    function withdrawDepositTo(
+        address payable withdrawAddress,
+        uint256 amount
+    ) public virtual override {
+        require(owner() == msg.sender, "Account: not NFT owner");
+        entryPoint().withdrawTo(withdrawAddress, amount);
+    }
 }
