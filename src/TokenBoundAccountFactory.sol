@@ -43,4 +43,12 @@ contract TokenBoundAccountFactory is BaseAccountFactory {
     ) internal override {
         TokenBoundAccount(payable(_account)).initialize(_admin, _data);
     }
+
+    /// @notice Returns the address of an Account that would be deployed with the given admin signer.
+    function getAccountAddress(
+        bytes calldata _data
+    ) public view returns (address) {
+        bytes32 salt = keccak256(abi.encode(_data));
+        return Clones.predictDeterministicAddress(accountImplementation, salt);
+    }
 }
