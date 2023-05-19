@@ -1,47 +1,45 @@
+## Token Bound Accounts (TBAs)
+
+Token-bound accounts are [Smart Wallets](https://portal.thirdweb.com/wallet/smart-wallet) in which the owner of the wallet is tied to the ownership of a specified erc-721 token.
+
 ## Getting Started
 
-Create a project using this example:
+To create TBAs, clone this repo using the [thirdweb CLI](https://portal.thirdweb.com/cli):
 
 ```bash
-npx thirdweb create --contract --template forge-starter
+npx thirdweb create --contract --template token-bound-account
 ```
 
-You can start editing the page by modifying `contracts/Contract.sol`.
+## Building the project & running tests
 
-To add functionality to your contracts, you can use the `@thirdweb-dev/contracts` package which provides base contracts and extensions to inherit. The package is already installed with this project. Head to our [Contracts Extensions Docs](https://portal.thirdweb.com/thirdweb-deploy/contract-extensions) to learn more.
+_Note: This repository is a [Foundry](https://book.getfoundry.sh/) project, so make sure that [Foundry is installed](https://book.getfoundry.sh/getting-started/installation) locally._
 
-## Building the project
-
-After any changes to the contract, run:
+To make sure that Foundry is up to date and install dependencies, run the following command:
 
 ```bash
-npm run build
-# or
-yarn build
+foundryup && forge install
 ```
 
-to compile your contracts. This will also detect the [Contracts Extensions Docs](https://portal.thirdweb.com/thirdweb-deploy/contract-extensions) detected on your contract.
+Once the dependencies are installed, tests can be run:
+
+```bash
+forge test
+```
 
 ## Deploying Contracts
 
-When you're ready to deploy your contracts, just run one of the following command to deploy you're contracts:
+To deploy *ANY* contract, with no requirements, use thirdweb Deploy:
 
 ```bash
-npm run deploy
-# or
-yarn deploy
+npx thirdweb deploy
 ```
 
-## Releasing Contracts
+1. Deploy the implementation contract, `TokenBoundAccount` as this will be needed as a constructor parameter for the factory.
+2. Deploy the factory contract `TokenBoundAccountFactory`
 
-If you want to release a version of your contracts publicly, you can use one of the followings command:
-
-```bash
-npm run release
-# or
-yarn release
-```
+In both cases, set the `EntryPoint` contract address as `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`.
+This address is the same on all chains it is deployed to.
 
 ## Join our Discord!
 
-For any questions, suggestions, join our discord at [https://discord.gg/thirdweb](https://discord.gg/thirdweb).
+For any questions or suggestions, join our discord at [https://discord.gg/thirdweb](https://discord.gg/thirdweb).
