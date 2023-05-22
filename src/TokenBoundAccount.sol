@@ -42,7 +42,7 @@ contract TokenBoundAccount is Account {
         require(owner() == _admin, "Account: not token owner.");
     }
 
-    /// @notice Executes a transaction (called directly from an admin, or by entryPoint)
+    /// @notice Executes a transaction (called directly from the token owner, or by entryPoint)
     function execute(
         address _target,
         uint256 _value,
@@ -51,7 +51,7 @@ contract TokenBoundAccount is Account {
         _call(_target, _value, _calldata);
     }
 
-    /// @notice Executes a sequence transaction (called directly from an admin, or by entryPoint)
+    /// @notice Executes a sequence transaction (called directly from the token owner, or by entryPoint)
     function executeBatch(
         address[] calldata _target,
         uint256[] calldata _value,
@@ -67,15 +67,6 @@ contract TokenBoundAccount is Account {
         }
     }
 
-    /// @notice Checks whether the caller is the EntryPoint contract or the admin.
-    modifier onlyOwnerOrEntrypoint() {
-        require(
-            msg.sender == address(entryPoint()) || owner() == msg.sender,
-            "Account: not admin or EntryPoint."
-        );
-        _;
-    }
-
     /// @notice Withdraw funds for this account from Entrypoint.
     function withdrawDepositTo(
         address payable withdrawAddress,
@@ -83,5 +74,14 @@ contract TokenBoundAccount is Account {
     ) public virtual override {
         require(owner() == msg.sender, "Account: not NFT owner");
         entryPoint().withdrawTo(withdrawAddress, amount);
+    }
+
+    /// @notice Checks whether the caller is the EntryPoint contract or the token owner.
+    modifier onlyOwnerOrEntrypoint() {
+        require(
+            msg.sender == address(entryPoint()) || owner() == msg.sender,
+            "Account: not admin or EntryPoint."
+        );
+        _;
     }
 }
