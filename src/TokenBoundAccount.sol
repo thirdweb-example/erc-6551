@@ -40,6 +40,7 @@ contract TokenBoundAccount is Account {
             _data,
             (uint256, address, uint256)
         );
+        emit TokenBoundAccountCreated(_admin, _data);
     }
 
     /// @notice Executes a transaction (called directly from the token owner, or by entryPoint)
