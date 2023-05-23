@@ -35,11 +35,11 @@ contract TokenBoundAccount is Account {
         address _admin,
         bytes calldata _data
     ) public override initializer {
-        require(owner() == _admin, "Account: not token owner.");
         (chainId, tokenContract, tokenId) = abi.decode(
             _data,
             (uint256, address, uint256)
         );
+        require(owner() == _admin, "Account: not token owner.");
         emit TokenBoundAccountCreated(_admin, _data);
     }
 
