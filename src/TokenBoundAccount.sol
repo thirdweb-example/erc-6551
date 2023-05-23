@@ -77,6 +77,12 @@ contract TokenBoundAccount is Account {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
+    function token()
+        external
+        view
+        returns (uint256 chainId, address tokenContract, uint256 tokenId)
+    {}
+
     /// @notice Checks whether the caller is the EntryPoint contract or the token owner.
     modifier onlyOwnerOrEntrypoint() {
         require(
