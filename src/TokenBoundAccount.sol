@@ -11,6 +11,13 @@ contract TokenBoundAccount is Account {
 
     event TokenBoundAccountCreated(address indexed account, bytes indexed data);
 
+    /**
+     * @notice Executes once when a contract is created to initialize state variables
+     *
+     * @param _entrypoint - 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789
+     * @param _factory - The factory contract address to issue token bound accounts
+     *
+     */
     constructor(
         IEntryPoint _entrypoint,
         address _factory
