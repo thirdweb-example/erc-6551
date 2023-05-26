@@ -4,3 +4,6 @@
 [submodule "lib/contracts"]
 	path = lib/contracts
 	url = https://github.com/thirdweb-dev/contracts
+[submodule "lib/reference"]
+	path = lib/reference
+	url = https://github.com/erc6551/reference
