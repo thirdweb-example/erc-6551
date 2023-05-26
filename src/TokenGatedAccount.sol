@@ -4,18 +4,18 @@ pragma solidity ^0.8.13;
 import "@thirdweb-dev/contracts/smart-wallet/non-upgradeable/Account.sol";
 import "@thirdweb-dev/contracts/eip/interface/IERC721.sol";
 
-contract TokenBoundAccount is Account {
+contract TokenGatedAccount is Account {
     uint256 public chainId;
     address public tokenContract;
     uint256 public tokenId;
 
-    event TokenBoundAccountCreated(address indexed account, bytes indexed data);
+    event TokenGatedAccountCreated(address indexed account, bytes indexed data);
 
     /**
      * @notice Executes once when a contract is created to initialize state variables
      *
      * @param _entrypoint - 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789
-     * @param _factory - The factory contract address to issue token bound accounts
+     * @param _factory - The factory contract address to issue token Gated accounts
      *
      */
     constructor(
@@ -47,7 +47,7 @@ contract TokenBoundAccount is Account {
             (uint256, address, uint256)
         );
         require(owner() == _admin, "Account: not token owner.");
-        emit TokenBoundAccountCreated(_admin, _data);
+        emit TokenGatedAccountCreated(_admin, _data);
     }
 
     /// @notice Executes a transaction (called directly from the token owner, or by entryPoint)

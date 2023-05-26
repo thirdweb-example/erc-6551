@@ -12,7 +12,7 @@ import {EntryPoint, IEntryPoint} from "@thirdweb-dev/contracts/smart-wallet/util
 import {UserOperation} from "@thirdweb-dev/contracts/smart-wallet/utils/UserOperation.sol";
 
 // Target
-import {TokenBoundAccountFactory, TokenBoundAccount} from "../src/TokenBoundAccountFactory.sol";
+import {TokenGatedAccountFactory, TokenGatedAccount} from "../src/TokenGatedAccountFactory.sol";
 
 /// @dev This is a dummy contract to test contract interactions with Account.
 contract Number {
@@ -31,12 +31,12 @@ contract Number {
     }
 }
 
-contract TokenBoundAccountTest is Test {
+contract TokenGatedAccountTest is Test {
     using ECDSA for bytes32;
 
     // Target contracts
     EntryPoint private entrypoint;
-    TokenBoundAccountFactory private tokenBoundAccountFactory;
+    TokenGatedAccountFactory private tokenGatedAccountFactory;
 
     // Mocks
     Number internal numberContract;
@@ -150,7 +150,7 @@ contract TokenBoundAccountTest is Test {
         // Setup contracts
         entrypoint = new EntryPoint();
         // deploy account factory
-        tokenBoundAccountFactory = new TokenBoundAccountFactory(
+        tokenGatedAccountFactory = new TokenGatedAccountFactory(
             IEntryPoint(payable(address(entrypoint)))
         );
         // deploy dummy contract
@@ -167,7 +167,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_createAccount_viaFactory() public {
         vm.expectEmit(true, true, false, true);
         emit AccountCreated(sender, accountAdmin);
-        tokenBoundAccountFactory.createAccount(accountAdmin, data);
+        tokenGatedAccountFactory.createAccount(accountAdmin, data);
     }
 
     /// @dev Create an account via Entrypoint.
@@ -178,7 +178,7 @@ contract TokenBoundAccountTest is Test {
             data
         );
         bytes memory initCode = abi.encodePacked(
-            abi.encodePacked(address(tokenBoundAccountFactory)),
+            abi.encodePacked(address(tokenGatedAccountFactory)),
             initCallData
         );
 
@@ -206,7 +206,7 @@ contract TokenBoundAccountTest is Test {
             data
         );
         bytes memory initCode = abi.encodePacked(
-            abi.encodePacked(address(tokenBoundAccountFactory)),
+            abi.encodePacked(address(tokenGatedAccountFactory)),
             initCallData
         );
 
@@ -225,7 +225,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeTransaction() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(
+        address account = tokenGatedAccountFactory.getAddress(
             accountAdmin,
             data
         );
@@ -233,7 +233,7 @@ contract TokenBoundAccountTest is Test {
         assertEq(numberContract.num(), 0);
 
         vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).execute(
+        TokenGatedAccount(payable(account)).execute(
             address(numberContract),
             0,
             abi.encodeWithSignature("setNum(uint256)", 42)
@@ -246,7 +246,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_executeBatchTransaction() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(
+        address account = tokenGatedAccountFactory.getAddress(
             accountAdmin,
             data
         );
@@ -265,7 +265,7 @@ contract TokenBoundAccountTest is Test {
         }
 
         vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).executeBatch(
+        TokenGatedAccount(payable(account)).executeBatch(
             targets,
             values,
             callData
@@ -349,7 +349,7 @@ contract TokenBoundAccountTest is Test {
     function test_state_accountReceivesNativeTokens() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.getAddress(
+        address account = tokenGatedAccountFactory.getAddress(
             accountAdmin,
             data
         );
@@ -368,7 +368,7 @@ contract TokenBoundAccountTest is Test {
 
         uint256 value = 1000;
 
-        address account = tokenBoundAccountFactory.getAddress(
+        address account = tokenGatedAccountFactory.getAddress(
             accountAdmin,
             data
         );
@@ -396,23 +396,23 @@ contract TokenBoundAccountTest is Test {
     function test_state_addAndWithdrawDeposit() public {
         _setup_executeTransaction();
 
-        address account = tokenBoundAccountFactory.createAccount(
+        address account = tokenGatedAccountFactory.createAccount(
             accountAdmin,
             data
         );
 
-        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 0);
+        assertEq(TokenGatedAccount(payable(account)).getDeposit(), 0);
 
         vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).addDeposit{value: 1000}();
-        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 1000);
+        TokenGatedAccount(payable(account)).addDeposit{value: 1000}();
+        assertEq(TokenGatedAccount(payable(account)).getDeposit(), 1000);
 
         vm.prank(accountAdmin);
-        TokenBoundAccount(payable(account)).withdrawDepositTo(
+        TokenGatedAccount(payable(account)).withdrawDepositTo(
             payable(accountSigner),
             500
         );
-        assertEq(TokenBoundAccount(payable(account)).getDeposit(), 500);
+        assertEq(TokenGatedAccount(payable(account)).getDeposit(), 500);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -422,7 +422,7 @@ contract TokenBoundAccountTest is Test {
     /// @dev Send an ERC-721 NFT to an account.
     function test_state_receiveERC721NFT() public {
         _setup_executeTransaction();
-        address account = tokenBoundAccountFactory.getAddress(
+        address account = tokenGatedAccountFactory.getAddress(
             accountAdmin,
             data
         );
@@ -437,7 +437,7 @@ contract TokenBoundAccountTest is Test {
     /// @dev Send an ERC-1155 NFT to an account.
     function test_state_receiveERC1155NFT() public {
         _setup_executeTransaction();
-        address account = tokenBoundAccountFactory.getAddress(
+        address account = tokenGatedAccountFactory.getAddress(
             accountAdmin,
             data
         );

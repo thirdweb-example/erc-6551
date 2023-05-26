@@ -1,13 +1,13 @@
-## Token Bound Accounts (TBAs)
+## Custom Smart Accounts
 
-Token-bound accounts are [Smart Wallets](https://portal.thirdweb.com/wallet/smart-wallet) in which the owner of the wallet is tied to the ownership of a specified erc-721 token.
+Use the [Solidity SDK](https://portal.thirdweb.com/solidity) to create custom ERC-4337 [Smart Wallets](https://portal.thirdweb.com/wallet/smart-wallet) in which the owner of the wallet is tied to the ownership of a specified erc-721 token.
 
 ## Getting Started
 
-To create TBAs, clone this repo using the [thirdweb CLI](https://portal.thirdweb.com/cli):
+To create a custom smart wallet, clone this repo using the [thirdweb CLI](https://portal.thirdweb.com/cli):
 
 ```bash
-npx thirdweb create --contract --template token-bound-account
+npx thirdweb create --contract --template token-gated-account
 ```
 
 ## Building the project & running tests
@@ -34,8 +34,8 @@ To deploy *ANY* contract, with no requirements, use thirdweb Deploy:
 npx thirdweb deploy
 ```
 
-1. Deploy the implementation contract, `TokenBoundAccount` as this will be needed as a constructor parameter for the factory.
-2. Deploy the factory contract `TokenBoundAccountFactory`
+1. Deploy the implementation contract, `TokenGatedAccount` as this will be needed as a constructor parameter for the factory.
+2. Deploy the factory contract `TokenGatedAccountFactory`
 
 In both cases, set the `EntryPoint` contract address as `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`.
 This address is the same on all chains it is deployed to.
