@@ -3,12 +3,10 @@ pragma solidity ^0.8.13;
 
 import "@thirdweb-dev/contracts/smart-wallet/non-upgradeable/Account.sol";
 import "@thirdweb-dev/contracts/eip/interface/IERC721.sol";
+import "@erc6551/src/lib/ERC6551AccountLib.sol";
+import "@erc6551/src/interfaces/IERC6551Account.sol";
 
-contract TokenGatedAccount is Account {
-    uint256 public chainId;
-    address public tokenContract;
-    uint256 public tokenId;
-
+contract TokenGatedAccount is Account, IERC6551Account {
     event TokenGatedAccountCreated(address indexed account, bytes indexed data);
 
     /**
@@ -25,6 +23,8 @@ contract TokenGatedAccount is Account {
         _disableInitializers();
     }
 
+    receive() external payable override(IERC6551Account, Account) {}
+
     function isValidSigner(
         address _signer
     ) public view override returns (bool) {
@@ -32,47 +32,23 @@ contract TokenGatedAccount is Account {
     }
 
     function owner() public view returns (address) {
-        if (chainId != block.chainid) {
-            revert("Invalid chainId");
-        }
+        (
+            uint256 chainId,
+            address tokenContract,
+            uint256 tokenId
+        ) = ERC6551AccountLib.token();
+
+        if (chainId != block.chainid) return address(0);
+
         return IERC721(tokenContract).ownerOf(tokenId);
     }
 
-    function initialize(
-        address _admin,
-        bytes calldata _data
-    ) public override initializer {
-        (chainId, tokenContract, tokenId) = abi.decode(
-            _data,
-            (uint256, address, uint256)
-        );
-        require(owner() == _admin, "Account: not token owner.");
-        emit TokenGatedAccountCreated(_admin, _data);
-    }
-
-    /// @notice Executes a transaction (called directly from the token owner, or by entryPoint)
-    function execute(
-        address _target,
-        uint256 _value,
-        bytes calldata _calldata
-    ) external virtual override onlyOwnerOrEntrypoint {
-        _call(_target, _value, _calldata);
-    }
-
-    /// @notice Executes a sequence transaction (called directly from the token owner, or by entryPoint)
-    function executeBatch(
-        address[] calldata _target,
-        uint256[] calldata _value,
-        bytes[] calldata _calldata
-    ) external virtual override onlyOwnerOrEntrypoint {
-        require(
-            _target.length == _calldata.length &&
-                _target.length == _value.length,
-            "Account: wrong array lengths."
-        );
-        for (uint256 i = 0; i < _target.length; i++) {
-            _call(_target[i], _value[i], _calldata[i]);
-        }
+    function executeCall(
+        address to,
+        uint256 value,
+        bytes calldata data
+    ) external payable onlyAdminOrEntrypoint returns (bytes memory result) {
+        return _call(to, value, data);
     }
 
     /// @notice Withdraw funds for this account from Entrypoint.
@@ -88,12 +64,31 @@ contract TokenGatedAccount is Account {
         external
         view
         returns (uint256 chainId, address tokenContract, uint256 tokenId)
-    {}
+    {
+        return ERC6551AccountLib.token();
+    }
 
-    /// @notice Checks whether the caller is the EntryPoint contract or the token owner.
-    modifier onlyOwnerOrEntrypoint() {
+    function nonce() external view returns (uint256) {
+        return getNonce();
+    }
+
+    function _call(
+        address _target,
+        uint256 value,
+        bytes memory _calldata
+    ) internal virtual override returns (bytes memory result) {
+        bool success;
+        (success, result) = _target.call{value: value}(_calldata);
+        if (!success) {
+            assembly {
+                revert(add(result, 32), mload(result))
+            }
+        }
+    }
+
+    modifier onlyAdminOrEntrypoint() override {
         require(
-            msg.sender == address(entryPoint()) || owner() == msg.sender,
+            msg.sender == address(entryPoint()) || msg.sender == owner(),
             "Account: not admin or EntryPoint."
         );
         _;
