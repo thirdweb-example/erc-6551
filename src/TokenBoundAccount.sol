@@ -6,14 +6,22 @@ import "@thirdweb-dev/contracts/eip/interface/IERC721.sol";
 import "@erc6551/src/lib/ERC6551AccountLib.sol";
 import "@erc6551/src/interfaces/IERC6551Account.sol";
 
-contract TokenGatedAccount is Account, IERC6551Account {
-    event TokenGatedAccountCreated(address indexed account, bytes indexed data);
+contract TokenBoundAccount is Account, IERC6551Account {
+    /*///////////////////////////////////////////////////////////////
+                            Events
+    //////////////////////////////////////////////////////////////*/
+
+    event TokenBoundAccountCreated(address indexed account, bytes indexed data);
+
+    /*///////////////////////////////////////////////////////////////
+                            Constructor
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Executes once when a contract is created to initialize state variables
      *
      * @param _entrypoint - 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789
-     * @param _factory - The factory contract address to issue token Gated accounts
+     * @param _factory - The factory contract address to issue token Bound accounts
      *
      */
     constructor(
@@ -25,6 +33,7 @@ contract TokenGatedAccount is Account, IERC6551Account {
 
     receive() external payable override(IERC6551Account, Account) {}
 
+    /// @notice Returns whether a signer is authorized to perform transactions using the wallet.
     function isValidSigner(
         address _signer
     ) public view override returns (bool) {
@@ -60,6 +69,14 @@ contract TokenGatedAccount is Account, IERC6551Account {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
+    /**
+     *
+     * @return chaidId - the chain id for the network the chain exists on
+     * @return tokenContract - the contract address for the token
+     * @return tokenId - the token Id of the NFT
+     *
+     */
+
     function token()
         external
         view
@@ -71,6 +88,10 @@ contract TokenGatedAccount is Account, IERC6551Account {
     function nonce() external view returns (uint256) {
         return getNonce();
     }
+
+    /*///////////////////////////////////////////////////////////////
+                            Internal Functions
+    //////////////////////////////////////////////////////////////*/
 
     function _call(
         address _target,
@@ -85,6 +106,10 @@ contract TokenGatedAccount is Account, IERC6551Account {
             }
         }
     }
+
+    /*///////////////////////////////////////////////////////////////
+                            Modifiers
+    //////////////////////////////////////////////////////////////*/
 
     modifier onlyAdminOrEntrypoint() override {
         require(
