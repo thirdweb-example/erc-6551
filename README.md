@@ -34,8 +34,8 @@ To deploy *ANY* contract, with no requirements, use thirdweb Deploy:
 npx thirdweb deploy
 ```
 
-1. Deploy the implementation contract, `TokenGatedAccount` as this will be needed as a constructor parameter for the factory.
-2. Deploy the factory contract `TokenGatedAccountFactory`
+1. Deploy the implementation contract, `TokenBoundAccount` as this will be needed as a constructor parameter for the factory.
+2. Deploy the factory contract `TokenBoundAccountFactory`
 
 In both cases, set the `EntryPoint` contract address as `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`.
 This address is the same on all chains it is deployed to.
