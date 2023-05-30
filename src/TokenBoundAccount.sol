@@ -69,14 +69,6 @@ contract TokenBoundAccount is Account, IERC6551Account {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
-    /**
-     *
-     * @return chaidId - the chain id for the network the chain exists on
-     * @return tokenContract - the contract address for the token
-     * @return tokenId - the token Id of the NFT
-     *
-     */
-
     function token()
         external
         view
