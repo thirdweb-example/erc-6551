@@ -7,7 +7,7 @@ Use the [Solidity SDK](https://portal.thirdweb.com/solidity) to create custom ER
 To create a custom smart wallet, clone this repo using the [thirdweb CLI](https://portal.thirdweb.com/cli):
 
 ```bash
-npx thirdweb create --contract --template token-gated-account
+npx thirdweb create --contract --template erc-6551
 ```
 
 ## Building the project & running tests
